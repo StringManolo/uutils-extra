@@ -1,5 +1,4 @@
 name: Build and Release
-
 on:
   push:
     tags:
@@ -60,7 +59,7 @@ jobs:
           - powerpc-unknown-linux-gnu
           - powerpc64-unknown-linux-gnu
           - powerpc64le-unknown-linux-gnu
-          - powerpc64le-unknown-linux-musl
+          # - powerpc64le-unknown-linux-musl   # sin imagen en cross; usar job aparte si se necesita
 
           # RISC-V
           - riscv64gc-unknown-linux-gnu
