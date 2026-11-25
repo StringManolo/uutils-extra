@@ -1,0 +1,155 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ubuntu-24.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          # x86
+          - i586-unknown-linux-gnu
+          - i586-unknown-linux-musl
+          - i686-unknown-linux-gnu
+          - i686-unknown-linux-musl
+          - x86_64-unknown-linux-gnu
+          - x86_64-unknown-linux-musl
+
+          # ARMv5
+          - armv5te-unknown-linux-gnueabi
+          - armv5te-unknown-linux-musleabi
+
+          # ARMv6
+          - arm-unknown-linux-gnueabi
+          - arm-unknown-linux-gnueabihf
+          - arm-unknown-linux-musleabi
+          - arm-unknown-linux-musleabihf
+
+          # ARMv7
+          - armv7-unknown-linux-gnueabi
+          - armv7-unknown-linux-gnueabihf
+          - armv7-unknown-linux-musleabi
+          - armv7-unknown-linux-musleabihf
+          - thumbv7neon-unknown-linux-gnueabihf
+
+          # ARM64
+          - aarch64-unknown-linux-gnu
+          - aarch64-unknown-linux-musl
+
+          # LoongArch
+          - loongarch64-unknown-linux-gnu
+          - loongarch64-unknown-linux-musl
+
+          # MIPS
+          - mips-unknown-linux-gnu
+          - mips-unknown-linux-musl
+          - mipsel-unknown-linux-gnu
+          - mipsel-unknown-linux-musl
+
+          # PowerPC
+          - powerpc-unknown-linux-gnu
+          - powerpc64-unknown-linux-gnu
+          - powerpc64le-unknown-linux-gnu
+          - powerpc64le-unknown-linux-musl
+
+          # RISC-V
+          - riscv64gc-unknown-linux-gnu
+          - riscv64gc-unknown-linux-musl
+
+          # IBM
+          - s390x-unknown-linux-gnu
+
+          # SPARC
+          - sparc64-unknown-linux-gnu
+
+          # Android / Bionic
+          - aarch64-linux-android
+          - arm-linux-androideabi
+          - armv7-linux-androideabi
+          - thumbv7neon-linux-androideabi
+          - i686-linux-android
+          - x86_64-linux-android
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rust-src
+
+      - name: Install Cross
+        run: cargo install cross --locked
+
+      - name: Build
+        run: |
+          cross build \
+            --locked \
+            --release \
+            --target "${{ matrix.target }}" \
+            --bin which
+
+      - name: Package
+        shell: bash
+        run: |
+          TARGET="${{ matrix.target }}"
+          VERSION="${GITHUB_REF_NAME}"
+
+          mkdir -p dist/package
+
+          cp "target/${TARGET}/release/which" dist/package/
+          cp README.md LICENSE dist/package/
+
+          ARCHIVE="uutils-extra-${VERSION}-${TARGET}.tar.gz"
+
+          tar -czf "dist/${ARCHIVE}" -C dist/package .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.target }}
+          path: dist/*.tar.gz
+          if-no-files-found: error
+          retention-days: 7
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: dist-*
+          path: dist
+          merge-multiple: true
+
+      - name: Generate checksums
+        run: |
+          cd dist
+          sha256sum *.tar.gz > SHA256SUMS
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: uutils-extra ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            dist/*.tar.gz
+            dist/SHA256SUMS
