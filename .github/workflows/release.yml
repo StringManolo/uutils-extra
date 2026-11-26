@@ -1,4 +1,5 @@
 name: Build and Release
+
 on:
   push:
     tags:
@@ -59,7 +60,6 @@ jobs:
           - powerpc-unknown-linux-gnu
           - powerpc64-unknown-linux-gnu
           - powerpc64le-unknown-linux-gnu
-          # - powerpc64le-unknown-linux-musl   # sin imagen en cross; usar job aparte si se necesita
 
           # RISC-V
           - riscv64gc-unknown-linux-gnu
@@ -91,23 +91,47 @@ jobs:
       - name: Install Cross
         run: cargo install cross --locked
 
-      - name: Build
+      - name: Build all binaries
+        shell: bash
         run: |
+          set -euo pipefail
+
+          TARGET="${{ matrix.target }}"
+
+          BIN_ARGS=()
+
+          for FILE in src/bin/*.rs; do
+            BIN="$(basename "$FILE" .rs)"
+            echo "Building $BIN for $TARGET"
+            BIN_ARGS+=(--bin "$BIN")
+          done
+
+          if [ ${#BIN_ARGS[@]} -eq 0 ]; then
+            echo "No binaries found in src/bin/"
+            exit 1
+          fi
+
           cross build \
             --locked \
             --release \
-            --target "${{ matrix.target }}" \
-            --bin which
+            --target "$TARGET" \
+            "${BIN_ARGS[@]}"
 
       - name: Package
         shell: bash
         run: |
+          set -euo pipefail
+
           TARGET="${{ matrix.target }}"
           VERSION="${GITHUB_REF_NAME}"
 
           mkdir -p dist/package
 
-          cp "target/${TARGET}/release/which" dist/package/
+          for FILE in src/bin/*.rs; do
+            BIN="$(basename "$FILE" .rs)"
+            cp "target/${TARGET}/release/${BIN}" dist/package/
+          done
+
           cp README.md LICENSE dist/package/
 
           ARCHIVE="uutils-extra-${VERSION}-${TARGET}.tar.gz"
