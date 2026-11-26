@@ -2,6 +2,8 @@
 
 Additional basic command-line utilities missing from Rust's [uutils/coreutils](https://github.com/uutils/coreutils).
 
+> Repo is new, tools are not mature
+
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/language-Rust-orange.svg)](https://www.rust-lang.org/)
 
