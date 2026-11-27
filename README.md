@@ -2,127 +2,142 @@
 
 Additional basic command-line utilities missing from Rust's [uutils/coreutils](https://github.com/uutils/coreutils).
 
-> Repo is new, tools are not mature
+> **Early development:** Utilities are not yet mature and compatibility may vary.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/language-Rust-orange.svg)](https://www.rust-lang.org/)
 
 ## Overview
 
-`uutils-extra` aims to provide clean, fast, and cross-platform Rust implementations of useful command-line utilities that are either missing from `uutils/coreutils` or fall outside its core scope.
+`uutils-extra` provides lightweight command-line utilities implemented in Rust, complementing [uutils/coreutils](https://github.com/uutils/coreutils).
 
-The project focuses on portability, low resource usage, straightforward command-line interfaces, and compatibility with Unix-like systems.
+It focuses on portability, low resource usage and support for a wide range of Linux architectures, including GNU, musl and Android Bionic environments.
 
-## Implemented Utilities
+## Available Utilities
 
-| Utility | Description | Status |
-| :--- | :--- | :--- |
-| `which` | Locate executable files in the user's `PATH`. | 🚧 In progress |
+`clear`, `command`, `dmesg`, `file`, `find`, `getconf`, `grep`, `ldd`, `pgrep`, `pkill`, `ps`, `sed`, `wait` and `which`.
 
 ## Installation
 
-### Download a precompiled binary
+Download the archive matching your system from [GitHub Releases](https://github.com/StringManolo/uutils-extra/releases), extract it and place the executables somewhere in your `PATH`.
 
-Precompiled binaries are published in [GitHub Releases](https://github.com/StringManolo/uutils-extra/releases).
+Release archives include:
 
-Each release may include builds for multiple architectures and environments, including:
+- x86, ARM, AArch64, MIPS, PowerPC, RISC-V, LoongArch64, s390x and SPARC64.
+- GNU and musl Linux targets, where supported.
+- Android Bionic targets.
 
-- Linux GNU (glibc)
-- Linux musl
-- Android (Bionic)
-- x86 and x86_64
-- ARMv6, ARMv7 and AArch64
-- RISC-V and other supported architectures
+Verify downloads using the included `SHA256SUMS` file:
 
-Download the archive matching your system, extract it, and place the executable somewhere in your `PATH`.
+```bash
+sha256sum -c SHA256SUMS
+```
+
+## Multicall vs. Individual Binaries
+
+There are two ways to use `uutils-extra`.
+
+### Multicall (recommended for multiple utilities)
+
+The `uutils-extra-multicall` binary includes **all available utilities in a single executable**.
+
+It is lighter than installing all individual binaries separately because the shared executable contains the implementations without duplicating the executable overhead for every command.
+
+Use multicall if you want most or all of the utilities.
+
+List available commands:
+
+```bash
+uutils-extra-multicall --list
+```
+
+Run a command directly:
+
+```bash
+uutils-extra-multicall grep "pattern" file.txt
+uutils-extra-multicall find . -name "*.rs"
+uutils-extra-multicall ps
+```
+
+#### Create command symlinks
+
+Multicall can also behave like individual commands through symbolic links.
 
 For example:
 
 ```bash
-tar -xzf uutils-extra-*.tar.gz
-chmod +x which
-./which sh
+ln -s /usr/bin/uutils-extra-multicall /usr/bin/grep
+ln -s /usr/bin/uutils-extra-multicall /usr/bin/find
+ln -s /usr/bin/uutils-extra-multicall /usr/bin/ps
 ```
 
-Check `SHA256SUMS` to verify downloaded archives.
+When invoked through a symlink, multicall automatically detects the command name and executes the corresponding utility.
 
-### Build from source
-
-Make sure you have the [Rust toolchain](https://rustup.rs/) installed.
+Alternatively, install symlinks for every available command:
 
 ```bash
-git clone https://github.com/StringManolo/uutils-extra.git
-cd uutils-extra
-
-cargo build --release --bins
+uutils-extra-multicall --install
 ```
 
-The compiled executables will be available in:
-
-```text
-target/release/
-```
-
-### Install using Cargo
+By default, symlinks are created in the current directory. You can specify another directory:
 
 ```bash
-cargo install --git https://github.com/StringManolo/uutils-extra --bin which
+uutils-extra-multicall --install /usr/local/bin
 ```
+
+**Note:** The destination directory must exist and you need sufficient permissions to create the symlinks.
+
+### Individual binaries
+
+If you only need one or two utilities, use their individual executables instead of multicall.
+
+For example:
+
+```bash
+./which bash
+./grep "pattern" file.txt
+```
+
+Individual binaries avoid including utilities you don't need.
+
+**In short:**
+- A few commands: use individual binaries.
+- Most or all commands: use `uutils-extra-multicall`.
 
 ## Usage
 
+Each utility supports its own command-line interface. Use `--help` to see available options.
+
 ```bash
-which sh
-which bash
-which -a python3
 which --help
+grep --help
+find --help
 ```
 
 ## Development
 
-Format the code:
-
-```bash
-cargo fmt --all
-```
-
-Run all tests:
-
-```bash
-cargo test --all-targets
-```
-
-Build all binaries:
-
 ```bash
 cargo build --release --bins
+cargo test --all-targets
 ```
 
 ## Automated Builds and Releases
 
-GitHub Actions is used to cross-compile binaries for supported targets and publish them as GitHub Releases.
+GitHub Actions automatically cross-compiles all binaries found in `src/bin/` for the configured targets whenever a version tag matching `v*` is pushed.
 
-To create a release, push a version tag:
+Each release includes architecture-specific `.tar.gz` archives containing the executables, `README.md` and `LICENSE`, along with SHA-256 checksums.
+
+Create a release with:
 
 ```bash
 git tag v0.1.0
 git push origin v0.1.0
 ```
 
-The release workflow is triggered automatically by tags matching `v*`.
-
-All architecture builds are published in a single GitHub Release for that version, together with SHA-256 checksums.
-
 ## Contributing
 
-Contributions are welcome! Whether it's implementing a new utility, improving POSIX compatibility, adding platform support, or fixing bugs:
-
-1. Fork the repository.
-2. Create a branch (`git checkout -b feat/add-utility-name`).
-3. Commit your changes (`git commit -m "Add utility-name"`).
-4. Push your branch (`git push origin feat/add-utility-name`).
-5. Open a Pull Request.
+Contributions are welcome! Feel free to submit bug fixes, improvements, new utilities and platform support through Pull Requests.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+MIT License. See [LICENSE](LICENSE).
