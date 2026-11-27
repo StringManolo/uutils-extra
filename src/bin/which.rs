@@ -128,7 +128,7 @@ fn print_help() {
     );
 }
 
-fn main() {
+pub fn main() {
     let mut all = false;
     let mut silent = false;
     let mut names = Vec::new();

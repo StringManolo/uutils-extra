@@ -30,7 +30,7 @@ fn get_value(_name: &str) -> Option<String> {
     None
 }
 
-fn main() {
+pub fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
 
     if args.iter().any(|a| a == "-h" || a == "--help") {

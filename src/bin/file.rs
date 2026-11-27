@@ -167,7 +167,7 @@ fn describe_file_contents(path: &Path) -> String {
     "data".into()
 }
 
-fn main() {
+pub fn main() {
     let mut args = env::args().skip(1);
 
     while let Some(arg) = args.next() {

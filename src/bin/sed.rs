@@ -122,7 +122,7 @@ fn help() {
     );
 }
 
-fn main() {
+pub fn main() {
     let mut quiet = false;
     let mut expressions = Vec::new();
     let mut files = Vec::new();

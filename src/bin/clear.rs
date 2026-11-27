@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-fn main() {
+pub fn main() {
     let mut args = std::env::args().skip(1);
 
     while let Some(arg) = args.next() {

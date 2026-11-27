@@ -150,7 +150,7 @@ fn parse_pid(value: &str) -> Result<i32, String> {
     Ok(pid)
 }
 
-fn main() {
+pub fn main() {
     let mut args = env::args().skip(1);
     let mut any = false;
     let mut pids = Vec::new();

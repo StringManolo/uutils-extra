@@ -138,7 +138,7 @@ fn help() {
     );
 }
 
-fn main() -> ExitCode {
+pub fn main() -> ExitCode {
     let mut args = env::args_os().skip(1);
 
     let mut mode = 'x';

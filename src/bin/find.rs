@@ -262,7 +262,7 @@ fn parse_args() -> Result<(Vec<PathBuf>, Options), String> {
     Ok((paths, options))
 }
 
-fn main() {
+pub fn main() {
     let (paths, options) = match parse_args() {
         Ok(value) => value,
         Err(error) => {
